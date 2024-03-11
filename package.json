@@ -1,7 +1,7 @@
 {
   "name": "firepower",
   "version": "1.0.0",
-  "description": "Handy utils to make Firebase's APIs even more powerful.",
+  "description": "powerful utils for firebase",
   "main": "src/index.js",
   "author": "Adam Cobb <adam@cobb.engineer>",
   "license": "MIT",
