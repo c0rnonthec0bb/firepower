@@ -1,0 +1,26 @@
+{
+  "name": "firepower",
+  "version": "1.0.0",
+  "description": "Handy utils to make Firebase's APIs even more powerful.",
+  "main": "src/index.js",
+  "author": "Adam Cobb <adam@cobb.engineer>",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "imports": {
+    "@/*": "./src/*"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.24.0",
+    "babel-jest": "^29.7.0",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "firebase-admin": "^12.0.0",
+    "firestore-jest-mock": "^0.24.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2"
+  },
+  "dependencies": {}
+}
