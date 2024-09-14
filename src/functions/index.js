@@ -10,10 +10,10 @@ import { logger } from 'firebase-functions'
 export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return functions.runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDoc, context) => {
+  return functions.runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDocSnap, context) => {
     const { eventId, params } = context
 
-    const docChange = new DataComparison(undefined, newDoc)
+    const docChange = new DataComparison(undefined, newDocSnap)
       .transform(decodeFirestoreDocumentSnapshot)
 
     const { id, ref, path } = docChange.newValue
@@ -29,11 +29,11 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return functions.runWith(options).firestore.document(wildcardDocPath).onWrite(async (docChange, context) => {
+  return functions.runWith(options).firestore.document(wildcardDocPath).onWrite(async (docSnap, context) => {
     const { eventId, params } = context
 
-    const oldDoc = change.before
-    const newDoc = change.after
+    const oldDoc = docSnap.before
+    const newDoc = docSnap.after
 
     const docChange = new DataComparison(oldDoc, newDoc)
       .transform(decodeFirestoreDocumentSnapshot)
@@ -79,5 +79,4 @@ export const onFunctionCall = optionalOptionsArg(async (ephemeralOptions = {}, d
     logger.info({ context: filteredContext, data: safeData, options, result }, 'onFunctionCall end')
     return result
   })
-}
-
+})
