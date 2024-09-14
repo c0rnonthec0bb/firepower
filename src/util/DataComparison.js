@@ -3,7 +3,7 @@ import {
   isDeepStrictEqualUnordered,
   typeofWithNull,
   getNumericalDiffBetweenObjects,
-} from './util'
+} from './util.js'
 
 export default class DataComparison {
   constructor(oldValue, newValue) {
