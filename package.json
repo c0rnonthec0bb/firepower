@@ -1,6 +1,6 @@
 {
   "name": "@acobb/firepower",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "powerful utils for firebase",
   "main": "src/index.js",
   "author": "Adam Cobb <adam@cobb.engineer>",
