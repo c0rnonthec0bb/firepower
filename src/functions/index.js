@@ -1,7 +1,7 @@
 
 import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util/index.js'
 import { getFunctionsBase } from '#functions/util.js'
-import { decodeFirestoreDocumentSnapshot } from '#firestore/util.js'
+import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
 import DataComparison from '#util/DataComparison.js'
 
 import { logger } from 'firebase-functions'
@@ -14,7 +14,7 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
     const { eventId, params } = context
 
     const docChange = new DataComparison(undefined, newDocSnap)
-      .transform(decodeFirestoreDocumentSnapshot)
+      .transform(docSnap => docSnap ? new FirepowerDocSnap(docSnap) : undefined)
 
     const { id, ref, path } = docChange.newValue
 
@@ -36,7 +36,7 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
     const newDoc = docSnap.after
 
     const docChange = new DataComparison(oldDoc, newDoc)
-      .transform(decodeFirestoreDocumentSnapshot)
+      .transform(docSnap => docSnap ? new FirepowerDocSnap(docSnap) : undefined)
 
     const { id, ref, path } = docChange.newValue
 
