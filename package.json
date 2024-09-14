@@ -1,5 +1,5 @@
 {
-  "name": "firepower",
+  "name": "@acobb/firepower",
   "version": "1.0.1",
   "description": "powerful utils for firebase",
   "main": "src/index.js",
