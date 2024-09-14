@@ -1,24 +1,74 @@
 
-import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalFirstArg } from '@/util'
+import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '@/util'
 import { getFunctionsBase } from '@/functions/util'
 import { decodeFirestoreDocumentSnapshot } from '@/firestore/util'
+import DataComparison from '@/util/DataComparison'
 
 
-export const onDocCreated = optionalFirstArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
+export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
   return functions.runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDoc, context) => {
     const { eventId, params } = context
 
-    const { data: newData, id, ref, path } = decodeFirestoreDocumentSnapshot(newDoc)
+    const docChange = new DataComparison(undefined, newDoc)
+      .transform(decodeFirestoreDocumentSnapshot)
+
+    const { id, ref, path } = docChange.newValue
 
     const logPrefix = `onDocCreated ${path}`
 
     getLogger().info({ context, newData, eventId, params}, logPrefix)
 
-    return await callback({ context, params, newDoc, newData, id, ref, path })
+    return await callback({ context, params, docChange, id, ref, path })
   })
 })
 
-// should return a `change` object with isChanged, oldValue, newValue
-// should write a util to get a new change object with a transform function
+export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
+  const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
+
+  return functions.runWith(options).firestore.document(wildcardDocPath).onWrite(async (docChange, context) => {
+    const { eventId, params } = context
+
+    const oldDoc = change.before
+    const newDoc = change.after
+
+    const docChange = new DataComparison(oldDoc, newDoc)
+      .transform(decodeFirestoreDocumentSnapshot)
+
+    const { id, ref, path } = docChange.newValue
+
+    const logPrefix = `onDocUpdated ${path}`
+
+    getLogger().info({ context, docChange, eventId, params }, logPrefix)
+
+    return await callback({ context, params, docChange, id, ref, path })
+  })
+})
+
+
+// callback : (data, context) => ()
+export const onFunctionCall = optionalOptionsArg(async (ephemeralOptions = {}, data, context) => {
+  const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
+
+  return functions.runWith(options).https.onCall(async (data, context) => {
+    const rawRequest = context.rawRequest || {}
+    const filteredContext = {
+      auth: context.auth || {},
+      aborted: rawRequest.aborted,
+      complete: rawRequest.complete,
+      headers: rawRequest.headers,
+      httpVersion: rawRequest.httpVersion,
+      method: rawRequest.method,
+      params: rawRequest.params,
+      upgrade: rawRequest.upgrade,
+      url: rawRequest.url,
+    }
+    const safeData = data || {}
+    logger.info({ context: filteredContext, data: safeData, options }, 'onFunctionCall start')
+    const result = await callback(safeData, context)
+    logger.info({ context: filteredContext, data: safeData, options, result }, 'onFunctionCall end')
+    return result
+  })
+}
+
