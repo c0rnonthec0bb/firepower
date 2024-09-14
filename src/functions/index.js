@@ -10,7 +10,7 @@ import { logger } from 'firebase-functions'
 export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return functions.runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDocSnap, context) => {
+  return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDocSnap, context) => {
     const { eventId, params } = context
 
     const docChange = new DataComparison(undefined, newDocSnap)
@@ -29,7 +29,7 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return functions.runWith(options).firestore.document(wildcardDocPath).onWrite(async (docSnap, context) => {
+  return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onWrite(async (docSnap, context) => {
     const { eventId, params } = context
 
     const oldDoc = docSnap.before
@@ -53,7 +53,7 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 export const onFunctionCall = optionalOptionsArg(async (ephemeralOptions = {}, data, context) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return functions.runWith(options).https.onCall(async (data, context) => {
+  return getFunctionsBase().runWith(options).https.onCall(async (data, context) => {
     const rawRequest = context.rawRequest || {}
 
     const { auth = {} } = rawRequest
