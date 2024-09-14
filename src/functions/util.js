@@ -1,4 +1,4 @@
 
 export function getFunctionsBase() {
-  return require('firebase-functions')
+  return require('firebase-functions/v1')
 }

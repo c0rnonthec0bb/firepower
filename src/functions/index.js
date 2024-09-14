@@ -4,6 +4,8 @@ import { getFunctionsBase } from '@/functions/util'
 import { decodeFirestoreDocumentSnapshot } from '@/firestore/util'
 import DataComparison from '@/util/DataComparison'
 
+import { logger } from 'firebase-functions'
+
 
 export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
@@ -18,7 +20,7 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 
     const logPrefix = `onDocCreated ${path}`
 
-    getLogger().info({ context, newData, eventId, params}, logPrefix)
+    logger.info({ context, newData, eventId, params}, logPrefix)
 
     return await callback({ context, params, docChange, id, ref, path })
   })
@@ -40,7 +42,7 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 
     const logPrefix = `onDocUpdated ${path}`
 
-    getLogger().info({ context, docChange, eventId, params }, logPrefix)
+    logger.info({ context, docChange, eventId, params }, logPrefix)
 
     return await callback({ context, params, docChange, id, ref, path })
   })

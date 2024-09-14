@@ -149,3 +149,11 @@ export function isDeepStrictEqualUnordered(item1, item2, verbose, deepLocation =
   return true
 }
 
+export function filterObjectKeys(object, keys) {
+  let result = {}
+  for(let key of keys){
+    if(object[key] !== undefined) result[key] = object[key]
+  }
+  return result
+}
+
