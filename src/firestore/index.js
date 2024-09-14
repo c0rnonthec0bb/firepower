@@ -1,8 +1,8 @@
 
-import { isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '@/util'
-import { getFirestoreBase } from '@/firestore/util'
-import FirepowerDocSnap from '@/firestore/FirepowerDocSnap'
-import FirepowerColSnap from '@/firestore/FirepowerColSnap'
+import { isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util.js'
+import { getFirestoreBase } from '#firestore/util.js'
+import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
+import FirepowerColSnap from '#firestore/FirepowerColSnap.js'
 
 const ONE_SECOND = 1000
 

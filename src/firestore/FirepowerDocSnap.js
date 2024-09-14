@@ -1,5 +1,5 @@
 
-import { decodeFirestoreData } from '@/firestore/util'
+import { decodeFirestoreData } from '#firestore/util.js'
 
 export default class FirepowerDocSnap {
   constructor(firestoreDocumentSnapshot, options = {}) {

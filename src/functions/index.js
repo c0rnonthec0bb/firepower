@@ -1,8 +1,8 @@
 
-import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '@/util'
-import { getFunctionsBase } from '@/functions/util'
-import { decodeFirestoreDocumentSnapshot } from '@/firestore/util'
-import DataComparison from '@/util/DataComparison'
+import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util.js'
+import { getFunctionsBase } from '#functions/util.js'
+import { decodeFirestoreDocumentSnapshot } from '#firestore/util.js'
+import DataComparison from '#util/DataComparison.js'
 
 import { logger } from 'firebase-functions'
 

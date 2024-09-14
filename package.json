@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "imports": {
-    "@/*": "./src/*"
+    "#*": "./src/*"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.0",

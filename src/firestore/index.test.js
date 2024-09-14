@@ -1,7 +1,7 @@
 
 import { mockFirebase } from 'firestore-jest-mock'
 
-import FirepowerDocSnap from '@/firestore/FirepowerDocSnap'
+import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
 
 import {
   getDoc,
