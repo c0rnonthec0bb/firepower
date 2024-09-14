@@ -1,4 +1,6 @@
 
+import functions from 'firebase-functions/v1'
+
 export function getFunctionsBase() {
-  return import('firebase-functions/v1')
+  return functions
 }

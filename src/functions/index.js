@@ -53,8 +53,6 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 export const onFunctionCall = optionalOptionsArg(async (ephemeralOptions = {}, data, context) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  console.log(getFunctionsBase())
-
   return getFunctionsBase().runWith(options).https.onCall(async (data, context) => {
     const rawRequest = context.rawRequest || {}
 
