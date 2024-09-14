@@ -3,11 +3,11 @@ import fs from 'fs'
 
 export function getFirebaseBase() {
   try {
-    return require('firebase-admin')
+    return import('firebase-admin')
   } catch(_) {}
 
   try {
-    return require('firebase/app')
+    return import('firebase/app')
   } catch(_) {}
 
   throw new Error("Firepower requires a codependency of either 'firebase' or 'firebase-admin'")
