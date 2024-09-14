@@ -1,5 +1,5 @@
 
-import { isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util.js'
+import { isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util/index.js'
 import { getFirestoreBase } from '#firestore/util.js'
 import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
 import FirepowerColSnap from '#firestore/FirepowerColSnap.js'
