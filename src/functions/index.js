@@ -55,16 +55,23 @@ export const onFunctionCall = optionalOptionsArg(async (ephemeralOptions = {}, d
 
   return functions.runWith(options).https.onCall(async (data, context) => {
     const rawRequest = context.rawRequest || {}
+
+    const { auth = {} } = rawRequest
+    const signedInUserId = auth.uid
+
     const filteredContext = {
-      auth: context.auth || {},
-      aborted: rawRequest.aborted,
-      complete: rawRequest.complete,
-      headers: rawRequest.headers,
-      httpVersion: rawRequest.httpVersion,
-      method: rawRequest.method,
-      params: rawRequest.params,
-      upgrade: rawRequest.upgrade,
-      url: rawRequest.url,
+      auth,
+      signedInUserId,
+      ...filterObjectKeys(rawRequest, [
+        'aborted',
+        'complete',
+        'headers',
+        'httpVersion',
+        'method',
+        'params',
+        'upgrade',
+        'url',
+      ]),
     }
     const safeData = data || {}
     logger.info({ context: filteredContext, data: safeData, options }, 'onFunctionCall start')
