@@ -1,16 +1,19 @@
 
 import fs from 'fs'
 
+
+let firebaseBase
+
+export function setFirebaseBase(newValue) {
+  firebaseBase = newValue
+}
+
 export function getFirebaseBase() {
-  try {
-    return require('firebase-admin')
-  } catch(_) {}
+  if (firebaseBase) {
+    return firebaseBase
+  }
 
-  try {
-    return require('firebase/compat/app')
-  } catch(_) {}
-
-  throw new Error("Firepower requires a codependency of either 'firebase' or 'firebase-admin'")
+  throw new Error("Firepower has not been initialized")
 }
 
 export function isFirebaseAdminSDK() {
