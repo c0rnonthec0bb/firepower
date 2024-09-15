@@ -6,4 +6,4 @@ export function initFirepower(firebaseBase) {
   setFirebaseBase(firebaseBase)
 }
 
-export * as firestore from '#firestore.js'
+export * as firestore from '#firestore/index.js'
