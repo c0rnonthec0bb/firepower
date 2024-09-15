@@ -560,6 +560,7 @@ export const watchColGroup = optionalOptionsArg((ephemeralOptions = {}, colGroup
 })
 
 export const runTransaction = function(...args) {
+  console.log('firestore base: ', getFirestoreBase())
   return getFirestoreBase()().runTransaction(...args)
 }
 

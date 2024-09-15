@@ -7,7 +7,7 @@ export function getFirebaseBase() {
   } catch(_) {}
 
   try {
-    return import('firebase/app')
+    return import('firebase/compat/app')
   } catch(_) {}
 
   throw new Error("Firepower requires a codependency of either 'firebase' or 'firebase-admin'")
