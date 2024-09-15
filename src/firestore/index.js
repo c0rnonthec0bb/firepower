@@ -331,7 +331,7 @@ export const getCol = optionalOptionsArg(async (ephemeralOptions = {}, colPath, 
     fsLog.duration = new Date() - startTime
     const result = new FirepowerColSnap(colSnap, options)
     if (!skipInfoLog) logger.info({ firestore: { ...fsLog } }, `Firestore getCol ${fsLog.path}`)
-    return res
+    return result
   } catch (error) {
     clearTimeout(durationWarningTimeout)
     fsLog.duration = new Date() - startTime
