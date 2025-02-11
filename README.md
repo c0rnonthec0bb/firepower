@@ -75,19 +75,40 @@ Gets a collection of documents.
 - `options`: Configuration options (optional)
   - `transaction`: Optional transaction object
 - `colPath`: Path to the collection
-- `queryAdditions`: Function to add query filters (optional)
+- `queryAdditions`: Array of query modifier functions (optional)
+  - Each function takes a query and returns a modified query
+  - Functions are applied in order
+  - Null or undefined functions are skipped
 - Returns: FirepowerColSnap wrapper around the collection
 
 Example:
 ```javascript
-getCol('users', q => q.where('age', '>', 18).orderBy('name'))
+// Single query addition
+getCol('users', [
+  q => q.where('age', '>', 18)
+])
+
+// Multiple query additions
+getCol('users', [
+  q => q.where('age', '>', 18),
+  q => q.orderBy('name'),
+  q => q.limit(10)
+])
+
+// With some conditional filters
+const isAdmin = true
+getCol('users', [
+  q => q.where('age', '>', 18),
+  isAdmin ? q => q.where('role', '==', 'admin') : null,
+  q => q.orderBy('name')
+])
 ```
 
 #### `getColGroup(options, colGroupName, queryAdditions)`
 Gets documents from a collection group (nested collections with same name).
 - `options`: Configuration options
 - `colGroupName`: Name of the collection group
-- `queryAdditions`: Function to add query filters (optional)
+- `queryAdditions`: Array of query modifier functions (optional)
 - Returns: FirepowerColSnap wrapper
 
 #### `getColInBatches(options, colPath, orderByAddition, queryAdditions, limitPerBatch, batchCallback)`
@@ -95,9 +116,28 @@ Gets documents from a collection in batches.
 - `options`: Configuration options
 - `colPath`: Path to the collection
 - `orderByAddition`: Function to add ordering (default: orderBy(docIdKey(), 'asc'))
-- `queryAdditions`: Function to add query filters
+- `queryAdditions`: Array of query modifier functions
 - `limitPerBatch`: Number of documents per batch
 - `batchCallback`: Function called after each batch
+
+Example:
+```javascript
+// Process users in batches with multiple filters
+await getColInBatches(
+  'users',
+  q => q.orderBy('createdAt', 'desc'),
+  [
+    q => q.where('status', '==', 'active'),
+    q => q.where('age', '>', 18)
+  ],
+  100,
+  async batch => {
+    for (const doc of batch.docs) {
+      await processUser(doc.data)
+    }
+  }
+)
+```
 
 ### Real-time Updates
 
@@ -137,36 +177,33 @@ unsubscribe()
 Watches a collection for real-time updates.
 - `options`: Similar to `watchDoc` options
 - `colPath`: Path to the collection
-- `queryAdditions`: Function to add query filters
+- `queryAdditions`: Array of query modifier functions
 - `callback`: Function called on collection updates with a `FirepowerColSnap`
 
 Example:
 ```javascript
-// Watch for new orders with status 'pending'
+// Watch for new orders with multiple filters
 const unsubscribe = firestore.watchCol(
   'orders',
-  q => q.where('status', '==', 'pending')
-    .orderBy('createdAt', 'desc')
-    .limit(20),
+  [
+    q => q.where('status', '==', 'pending'),
+    q => q.where('total', '>', 100),
+    q => q.orderBy('createdAt', 'desc'),
+    q => q.limit(20)
+  ],
   (snapshot: FirepowerColSnap) => {
-    // Handle updates to the collection
-    console.log('Pending orders:', snapshot.docs.length)
-    
-    // Access individual documents (each doc is a FirepowerDocSnap)
+    console.log('Pending high-value orders:', snapshot.docs.length)
     snapshot.docs.forEach(doc => {
-      // doc is a FirepowerDocSnap instance
-      console.log('Order:', {
-        id: doc.id,
-        path: doc.path,
-        data: doc.data  // automatically decoded from Firestore format
-      })
+      console.log('Order:', doc.data)
     })
   }
 )
-
-// Later, when you want to stop watching:
-unsubscribe()
 ```
+
+#### `watchColGroup(options, colGroupName, queryAdditions, callback)`
+Watches a collection group for real-time updates.
+- Similar to `watchCol` but for collection groups
+- `queryAdditions`: Array of query modifier functions
 
 ### Field Values
 

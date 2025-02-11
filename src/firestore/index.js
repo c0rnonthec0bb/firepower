@@ -1,4 +1,3 @@
-
 import { isFirebaseAdminSDK, getLogger, optionalOptionsArg } from '#util/index.js'
 import { getFirestoreBase, encodeFirestoreData } from '#firestore/util.js'
 import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
@@ -41,7 +40,7 @@ export function serverTimestamp() {
  * @returns {FieldValue} A Firestore `arrayUnion` FieldValue
  */
 export function serverArrayUnion(...elements) {
-  return firestoreBase().FieldValue.arrayUnion(...elements)
+  return getFirestoreBase().FieldValue.arrayUnion(...elements)
 }
 
 /**
@@ -51,7 +50,7 @@ export function serverArrayUnion(...elements) {
  * @returns {FieldValue} A Firestore `arrayRemove` FieldValue
  */
 export function serverArrayRemove(...elements) {
-  return firestoreBase().FieldValue.arrayRemove(...elements)
+  return getFirestoreBase().FieldValue.arrayRemove(...elements)
 }
 
 /**
@@ -60,9 +59,19 @@ export function serverArrayRemove(...elements) {
  * @returns {FieldValue} A Firestore `delete` FieldValue
  */
 export function cloudDelete() {
-  return firestoreBase().FieldValue.delete()
+  return getFirestoreBase().FieldValue.delete()
 }
 
+/**
+ * Applies an array of query additions to a Firestore query.
+ *
+ * @param {Query} query The Firestore query to apply the query additions to
+ * @param {Array<Function>} queryAdditions The array of query additions to apply
+ * @returns {Query} The Firestore query with the query additions applied
+ */
+function applyQueryAdditions(query, queryAdditions) {
+  return queryAdditions.reduce((q, addition) => addition(q), query)
+}
 
 export function docPath(pathOrRefOrDocOrChange) {
   if (typeof pathOrRefOrDocOrChange === 'string') return pathOrRefOrDocOrChange
@@ -89,7 +98,6 @@ export function docRef(pathOrRefOrDocOrChange) {
   if (!path) return undefined
   return getFirestoreBase()().doc(path)
 }
-
 
 /**
  * Sets a document's data in Firestore.
@@ -178,7 +186,6 @@ export const updateDoc = optionalOptionsArg(async (ephemeralOptions = {}, pathOr
     throw error
   }
 })
-
 
 /**
  * Adds a new document to a collection.
@@ -307,11 +314,11 @@ export const getDoc = optionalOptionsArg(async (ephemeralOptions = {}, pathOrRef
  * Gets a collection of documents from Firestore
  *
  * @param {String} colPath The path of the collection to fetch
- * @param {*} queryAdditions Filters for the query
+ * @param {Array<Function>} queryAdditions Filters for the query
  * @param {Object} options Only useful inside a transaction
  * @returns A snapshot of documents
  */
-export const getCol = optionalOptionsArg(async (ephemeralOptions = {}, colPath, queryAdditions = (q => q)) => {
+export const getCol = optionalOptionsArg(async (ephemeralOptions = {}, colPath, queryAdditions = []) => {
   const options = { ...ephemeralOptions }
 
   const startTime = new Date()
@@ -325,7 +332,7 @@ export const getCol = optionalOptionsArg(async (ephemeralOptions = {}, colPath, 
   }, 30 * ONE_SECOND)
 
   try {
-    const query = queryAdditions(getFirestoreBase()().collection(colPath))
+    const query = applyQueryAdditions(getFirestoreBase()().collection(colPath), queryAdditions)
     const colSnap = await (transaction ? transaction.get(query) : query.get())
     clearTimeout(durationWarningTimeout)
     fsLog.duration = new Date() - startTime
@@ -341,21 +348,58 @@ export const getCol = optionalOptionsArg(async (ephemeralOptions = {}, colPath, 
 })
 
 /**
+ * Gets a collection of documents from a nested collection
+ *
+ * @param {String} colGroupName The name of the collection group to fetch from
+ * @param {Array<Function>} queryAdditions Filters for the query
+ * @param {Object} options Only useful inside a transaction
+ * @returns A snapshot of documents
+ */
+export const getColGroup = optionalOptionsArg(async (ephemeralOptions = {}, colGroupName, queryAdditions = []) => {
+  const options = { ...ephemeralOptions }
+
+  const startTime = new Date()
+  const logger = getLogger()
+
+  const { transaction, skipInfoLog = true } = options
+  const fsLog = { path: colGroupName, operation: 'getColGroup', isWrite: false, inTransaction: Boolean(transaction) }
+
+  const durationWarningTimeout = setTimeout(() => {
+    if (!requestResolved) logger.warn(fsLog, `Firestore getColGroup WARN ${fsLog.path} taking over 30s`)
+  }, 30 * ONE_SECOND)
+
+  try {
+    const query = applyQueryAdditions(getFirestoreBase()().collectionGroup(colGroupName), queryAdditions)
+    const colSnap = await (transaction ? transaction.get(query) : query.get())
+    clearTimeout(durationWarningTimeout)
+    fsLog.duration = new Date() - startTime
+    const result = new FirepowerColSnap(colSnap, options)
+    if (!skipInfoLog) logger.info({ firestore: { ...fsLog } }, `Firestore getColGroup ${fsLog.path}`)
+    return result
+  } catch (error) {
+    clearTimeout(durationWarningTimeout)
+    fsLog.duration = new Date() - startTime
+    logger.error({ firestore: { ...fsLog, error } }, `Firestore getColGroup ERROR ${fsLog.path}`)
+    throw error
+  }
+})
+
+/**
  * Gets documents from a collection in batches, calling the `batchCallback` after each batch.
  *
  * @param {String} colPath The path of the collection to get documents from
  * @param {Function} orderByAddition Additional orderBy
- * @param {Function} queryAdditions Additional query filters
+ * @param {Array<Function>} queryAdditions Additional query filters
  * @param {Integer} limitPerBatch The number of documents to fetch per batch
  * @param {Function} batchCallback The function to call after each batch has been fetched
  */
-export const getColInBatches = optionalOptionsArg(async (ephemeralOptions = {}, colPath, orderByAddition = q => q.orderBy(docIdKey(), 'asc'), queryAdditions, limitPerBatch, batchCallback) => {
+export const getColInBatches = optionalOptionsArg(async (ephemeralOptions = {}, colPath, orderByAddition = q => q.orderBy(docIdKey(), 'asc'), queryAdditions = [], limitPerBatch = 100, batchCallback = () => {}) => {
   const options = { ...ephemeralOptions }
 
   let startAfterDoc
   const startAfterAddition = q => (startAfterDoc ? q.startAfter(startAfterDoc) : q)
 
-  const queryAddition = q => startAfterAddition(queryAdditions(orderByAddition(q).limit(limitPerBatch)))
+  const queryAddition = q => startAfterAddition(applyQueryAdditions(q, [orderByAddition, ...queryAdditions]).limit(limitPerBatch))
 
   let batchResult
   let stopFlag = false
@@ -372,58 +416,21 @@ export const getColInBatches = optionalOptionsArg(async (ephemeralOptions = {}, 
 })
 
 /**
- * Gets a collection of documents from a nested collection
- *
- * @param {String} colGroupName The name of the collection group to fetch from
- * @param {*} queryAdditions Filters for the query
- * @param {Object} options Only useful inside a transaction
- * @returns A snapshot of documents
- */
-export const getColGroup = optionalOptionsArg(async (ephemeralOptions = {}, colGroupName, queryAdditions = (q => q)) => {
-  const options = { ...ephemeralOptions }
-
-  const startTime = new Date()
-  const logger = getLogger()
-
-  const { transaction, skipInfoLog = true } = options
-  const fsLog = { path: colGroupName, operation: 'getColGroup', isWrite: false, inTransaction: Boolean(transaction) }
-
-  const durationWarningTimeout = setTimeout(() => {
-    if (!requestResolved) logger.warn(fsLog, `Firestore getColGroup WARN ${fsLog.path} taking over 30s`)
-  }, 30 * ONE_SECOND)
-
-  try {
-    const query = queryAdditions(getFirestoreBase()().collectionGroup(colGroupName))
-    const colSnap = await (transaction ? transaction.get(query) : query.get())
-    clearTimeout(durationWarningTimeout)
-    fsLog.duration = new Date() - startTime
-    const result = new FirepowerColSnap(colSnap, options)
-    if (!skipInfoLog) logger.info({ firestore: { ...fsLog } }, `Firestore getColGroup ${fsLog.path}`)
-    return result
-  } catch (error) {
-    clearTimeout(durationWarningTimeout)
-    fsLog.duration = new Date() - startTime
-    logger.error({ firestore: { ...fsLog, error } }, `Firestore getColGroup ERROR ${fsLog.path}`)
-    throw error
-  }
-})
-
-/**
  * Gets documents from a collection group in batches, calling the `batchCallback` after each batch.
  *
  * @param {String} colGroupName The path of the collection group to get documents from
  * @param {Function} orderByAddition Additional orderBy
- * @param {Function} queryAdditions Additional query filters
+ * @param {Array<Function>} queryAdditions Additional query filters
  * @param {Integer} limitPerBatch The number of documents to fetch per batch
  * @param {Function} batchCallback The function to call after each batch has been fetched
  */
-export const getColGroupInBatches = optionalOptionsArg(async (ephemeralOptions = {}, colGroupName, orderByAddition = q => q.orderBy(docIdKey(), 'asc'), queryAdditions, limitPerBatch, batchCallback) => {
+export const getColGroupInBatches = optionalOptionsArg(async (ephemeralOptions = {}, colGroupName, orderByAddition = q => q.orderBy(docIdKey(), 'asc'), queryAdditions = [], limitPerBatch = 100, batchCallback = () => {}) => {
   const options = { ...ephemeralOptions }
 
   let startAfterDoc
   const startAfterAddition = q => (startAfterDoc ? q.startAfter(startAfterDoc) : q)
 
-  const queryAddition = q => startAfterAddition(queryAdditions(orderByAddition(q).limit(limitPerBatch)))
+  const queryAddition = q => startAfterAddition(applyQueryAdditions(q, [orderByAddition, ...queryAdditions]).limit(limitPerBatch))
 
   let batchResult
   let stopFlag = false
@@ -484,7 +491,7 @@ export const watchDoc = optionalOptionsArg((ephemeralOptions = {}, pathOrRefOrDo
 // BEWARE: the onSnapshot function is DIFFERENT in the admin SDK vs the web SDK:
 // admin SDK (no options param): https://googleapis.dev/nodejs/firestore/latest/CollectionReference.html#onSnapshot
 // web SDK (options param): https://firebase.google.com/docs/reference/node/firestore.CollectionReference#onsnapshot
-export const watchCol = optionalOptionsArg((ephemeralOptions = {}, colPath, queryAdditions, callback) => {
+export const watchCol = optionalOptionsArg((ephemeralOptions = {}, colPath, queryAdditions = [], callback) => {
   const options = { ...ephemeralOptions }
 
   const {
@@ -517,13 +524,13 @@ export const watchCol = optionalOptionsArg((ephemeralOptions = {}, colPath, quer
     onError(error)
   })
 
-  return queryAdditions(getFirestoreBase()().collection(colPath)).onSnapshot(...onSnapshotArgs)
+  return applyQueryAdditions(getFirestoreBase()().collection(colPath), queryAdditions).onSnapshot(...onSnapshotArgs)
 })
 
 // BEWARE: the onSnapshot function is DIFFERENT in the admin SDK vs the web SDK:
 // admin SDK (no options param): https://googleapis.dev/nodejs/firestore/latest/CollectionReference.html#onSnapshot
 // web SDK (options param): https://firebase.google.com/docs/reference/node/firestore.CollectionReference#onsnapshot
-export const watchColGroup = optionalOptionsArg((ephemeralOptions = {}, colGroupName, queryAdditions, callback) => {
+export const watchColGroup = optionalOptionsArg((ephemeralOptions = {}, colGroupName, queryAdditions = [], callback) => {
   const options = { ...ephemeralOptions }
 
   const {
@@ -556,7 +563,7 @@ export const watchColGroup = optionalOptionsArg((ephemeralOptions = {}, colGroup
     onError(error)
   })
 
-  return queryAdditions(getFirestoreBase()().collectionGroup(colGroupName)).onSnapshot(...onSnapshotArgs)
+  return applyQueryAdditions(getFirestoreBase()().collectionGroup(colGroupName), queryAdditions).onSnapshot(...onSnapshotArgs)
 })
 
 export const runTransaction = function(...args) {

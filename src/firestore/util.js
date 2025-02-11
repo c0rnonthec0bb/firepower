@@ -1,4 +1,3 @@
-
 import { getFirebaseBase } from '#util/index.js'
 
 export function getFirestoreBase() {
@@ -53,3 +52,6 @@ export function encodeFirestoreDataForUpload(data) {
 
 }
 
+export function applyQueryAdditions(qi, queryAdditionsList) {
+  return queryAdditionsList.reduce((q, addition) => addition ? addition(q) : q, qi)
+}
