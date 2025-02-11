@@ -1,6 +1,10 @@
 
-import functions from 'firebase-functions'
+let functionsBase
+
+export function setFunctionsBase(newValue) {
+  functionsBase = newValue
+}
 
 export function getFunctionsBase() {
-  return functions
+  return functionsBase
 }
