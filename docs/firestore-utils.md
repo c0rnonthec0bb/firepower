@@ -112,6 +112,14 @@ The `FirepowerDocSnap` class provides a convenient wrapper around Firestore docu
 - `metadata`: The document metadata
 - `ref`: The document reference
 - `path`: The full document path
+- `data`: The document data (automatically decoded from Firestore format)
+
+## Collection Snapshot Wrapper
+
+The `FirepowerColSnap` class provides a wrapper around Firestore collection snapshots:
+
+- `docs`: Array of `FirepowerDocSnap` instances for each document in the collection
+- `colSnap`: The underlying Firestore collection snapshot
 
 ## Real-time Updates
 
@@ -122,14 +130,65 @@ Watches a document for real-time updates.
   - `includeMetadataChanges`: Include metadata changes (default: false)
   - `onError`: Error handler
 - `pathOrRefOrDocOrChange`: Path or reference to document
-- `callback`: Function called on document updates
+- `callback`: Function called on document updates with a `FirepowerDocSnap`
+
+Example:
+```javascript
+// Watch for changes to a user's profile
+const unsubscribe = firestore.watchDoc(
+  'users/123',
+  (docSnap: FirepowerDocSnap) => {
+    if (docSnap.exists) {
+      // Access document data (automatically decoded)
+      console.log('Profile updated:', docSnap.data)
+      
+      // Access document metadata
+      console.log('Document ID:', docSnap.id)
+      console.log('Document path:', docSnap.path)
+    } else {
+      console.log('Profile deleted')
+    }
+  }
+)
+
+// Later, when you want to stop watching:
+unsubscribe()
+```
 
 ### `watchCol(options, colPath, queryAdditions, callback)`
 Watches a collection for real-time updates.
 - `options`: Similar to `watchDoc` options
 - `colPath`: Path to the collection
 - `queryAdditions`: Function to add query filters
-- `callback`: Function called on collection updates
+- `callback`: Function called on collection updates with a `FirepowerColSnap`
+
+Example:
+```javascript
+// Watch for new orders with status 'pending'
+const unsubscribe = firestore.watchCol(
+  'orders',
+  q => q.where('status', '==', 'pending')
+    .orderBy('createdAt', 'desc')
+    .limit(20),
+  (snapshot: FirepowerColSnap) => {
+    // Handle updates to the collection
+    console.log('Pending orders:', snapshot.docs.length)
+    
+    // Access individual documents (each doc is a FirepowerDocSnap)
+    snapshot.docs.forEach(doc => {
+      // doc is a FirepowerDocSnap instance
+      console.log('Order:', {
+        id: doc.id,
+        path: doc.path,
+        data: doc.data  // automatically decoded from Firestore format
+      })
+    })
+  }
+)
+
+// Later, when you want to stop watching:
+unsubscribe()
+```
 
 ### `watchColGroup(options, colGroupName, queryAdditions, callback)`
 Watches a collection group for real-time updates.

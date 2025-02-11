@@ -63,6 +63,23 @@ const users = await firestore.getCol('users',
 firestore.watchDoc('users/123', doc => {
   console.log('User updated:', doc.data)
 })
+
+// Watch a filtered collection in real-time
+const unsubscribe = firestore.watchCol(
+  'orders',
+  q => q.where('status', '==', 'pending')
+    .orderBy('createdAt', 'desc')
+    .limit(10),
+  snapshot => {
+    // Each doc in snapshot.docs is a FirepowerDocSnap
+    snapshot.docs.forEach(doc => {
+      console.log(`Order ${doc.id}:`, doc.data)
+    })
+  }
+)
+
+// Stop watching when done
+unsubscribe()
 ```
 
 See the individual documentation sections for detailed usage examples and advanced features.
