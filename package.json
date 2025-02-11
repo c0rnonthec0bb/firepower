@@ -19,8 +19,13 @@
     "build:esm": "mkdir -p dist/esm && cp -r src/* dist/esm/",
     "build:cjs": "mkdir -p dist/cjs && cp -r src/* dist/cjs/ && node scripts/add-cjs.js",
     "test": "jest",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "imports": {
     "#*": "./src/*"
   },
