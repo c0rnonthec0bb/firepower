@@ -18,11 +18,14 @@ export const onDocCreated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
 
     const { id, ref, path } = docChange.newValue
 
+    const dataChange = docChange
+      .transform(({ data }) => data)
+
     const logPrefix = `onDocCreated ${path}`
 
-    getLogger().info({ context, newData, eventId, params}, logPrefix)
+    getLogger().info({ context, docChange, dataChange, eventId, params}, logPrefix)
 
-    const result = await callback({ context, params, docChange, id, ref, path })
+    const result = await callback({ context, params, docChange, dataChange, id, ref, path })
     if (result) {
       const { updates, promiseFunctions } = result
 
@@ -51,21 +54,22 @@ export const onDocUpdated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
 
     const { id, ref, path } = docChange.newValue
 
+    const dataChange = docChange
+      .transform(({ data }) => data)
+
     const logPrefix = `onDocUpdated ${path}`
 
-    getLogger().info({ context, docChange, eventId, params }, logPrefix)
+    getLogger().info({ context, docChange, dataChange, eventId, params }, logPrefix)
 
-    const result = await callback({ context, params, docChange, id, ref, path })
+    const result = await callback({ context, params, docChange, dataChange, id, ref, path })
     if (result) {
-      const { updates, promiseFunctions } = result
+      const { updates = {}, promiseFunctions = [] } = result
 
-      if (updates) {
+      if (Object.keys(updates).length) {
         await updateDoc(path, updates)
       }
 
-      if (promiseFunctions) {
-        await Promise.all(promiseFunctions.map(f => f()))
-      }
+      await Promise.all(promiseFunctions.map(f => f()))
     }
   })
 })
