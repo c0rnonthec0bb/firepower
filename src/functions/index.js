@@ -7,7 +7,7 @@ import DataComparison from '../util/DataComparison.js'
 import { logger } from 'firebase-functions'
 
 
-export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
+export const onDocCreated = optionalOptionsArg((ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
   return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDoc, context) => {
@@ -37,7 +37,7 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
   })
 })
 
-export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
+export const onDocUpdated = optionalOptionsArg((ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
   return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onWrite(async (docSnap, context) => {
