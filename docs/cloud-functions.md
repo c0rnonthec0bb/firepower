@@ -1,6 +1,18 @@
-# Cloud Functions Utilities
+# Cloud Functions
 
 This document describes the Cloud Functions utilities available in the Firepower library.
+
+## Setup
+
+To use the Cloud Functions utilities, you need to initialize Firepower with both the Firebase Admin SDK and Functions instances:
+
+```javascript
+import { initFirepower } from '@acobb/firepower'
+import admin from 'firebase-admin'
+import functions from 'firebase-functions/v1'
+
+initFirepower(admin, functions)
+```
 
 ## Function Triggers
 

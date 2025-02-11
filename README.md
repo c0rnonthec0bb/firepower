@@ -7,16 +7,23 @@ Firepower is a utility library that provides a streamlined interface for working
 **IMPORTANT**: Before using any Firepower utilities, you must initialize the library with your Firebase instance:
 
 ```javascript
-import { initFirepower } from 'firepower'
-import firebase from 'firebase/compat/app'
-// or
+import { initFirepower } from '@acobb/firepower'
 import admin from 'firebase-admin'
+import functions from 'firebase-functions/v1'
 
-// Initialize with firebase client SDK
-initFirepower(firebase)
-// or with admin SDK
+// Initialize with Firebase Admin SDK and Functions
+initFirepower(admin, functions)
+
+// Or just Firebase Admin SDK if not using Cloud Functions
 initFirepower(admin)
+
+// Or with Firebase Web SDK
+initFirepower(firebase)
 ```
+
+The `initFirepower` function accepts:
+1. `firebaseBase`: Required. The Firebase instance from either Firebase Admin SDK (`admin`) or Firebase Web SDK (`firebase`).
+2. `functionsBase`: Optional. The Firebase Functions instance (`functions`). Only required if you're using the Cloud Functions utilities.
 
 ## Firestore Utilities
 
