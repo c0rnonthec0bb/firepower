@@ -19,7 +19,7 @@ export const onDocCreated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
     const { id, ref, path } = docChange.newValue
 
     const dataChange = docChange
-      .transform(({ data }) => data)
+      .transform(({ data = {} } = {}) => data)
 
     const logPrefix = `onDocCreated ${path}`
 
@@ -55,7 +55,7 @@ export const onDocUpdated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
     const { id, ref, path } = docChange.newValue
 
     const dataChange = docChange
-      .transform(({ data }) => data)
+      .transform(({ data = {} } = {}) => data)
 
     const logPrefix = `onDocUpdated ${path}`
 
