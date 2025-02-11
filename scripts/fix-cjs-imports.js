@@ -10,11 +10,11 @@ const __dirname = dirname(__filename);
 function processFile(filePath) {
   const content = readFileSync(filePath, 'utf8');
   
-  // Replace .js imports with .cjs
-  const updatedContent = content.replace(
-    /require\(['"]([^'"]+)\.js['"]\)/g,
-    "require('$1.cjs')"
-  );
+  // Replace .js imports with .cjs for both require and relative paths
+  const updatedContent = content
+    .replace(/require\(['"]([^'"]+)\.js['"]\)/g, "require('$1.cjs')")
+    .replace(/from\s+['"]([^'"]+)\.js['"]/g, "from '$1.cjs'")
+    .replace(/import\s+['"]([^'"]+)\.js['"]/g, "import '$1.cjs'");
 
   writeFileSync(filePath, updatedContent);
 }
