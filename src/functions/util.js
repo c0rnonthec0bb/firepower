@@ -1,5 +1,5 @@
 
-import functions from 'firebase-functions/v1'
+import functions from 'firebase-functions'
 
 export function getFunctionsBase() {
   return functions
