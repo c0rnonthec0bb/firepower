@@ -294,11 +294,59 @@ Triggers when a new document is created in Firestore.
 - `ref`: Document reference
 - `path`: Document path
 
+**Return Value:**
+The callback can optionally return an object with:
+- `updates`: Object with fields to update on the triggered document
+- `promiseFunctions`: Array of functions that return promises to be executed
+
+Example:
+```javascript
+onDocCreated('users/{userId}', async ({ docChange, params }) => {
+  const userData = docChange.newValue.data
+  
+  // Return updates and async operations
+  return {
+    // Update the document with additional fields
+    updates: {
+      lastProcessed: new Date(),
+      status: 'processed'
+    },
+    // Run additional async operations
+    promiseFunctions: [
+      () => sendWelcomeEmail(userData.email),
+      () => updateUserStats(params.userId)
+    ]
+  }
+})
+```
+
 #### `onDocUpdated(options, wildcardDocPath, callback)`
 Triggers when a document is updated in Firestore.
 
 **Parameters:**
 - Same as `onDocCreated`
+
+**Return Value:**
+- Same as `onDocCreated`
+
+Example:
+```javascript
+onDocUpdated('orders/{orderId}', async ({ docChange }) => {
+  const oldStatus = docChange.oldValue?.data?.status
+  const newStatus = docChange.newValue.data.status
+  
+  if (oldStatus !== newStatus && newStatus === 'completed') {
+    return {
+      updates: {
+        completedAt: new Date()
+      },
+      promiseFunctions: [
+        () => sendOrderConfirmation(docChange.newValue.data)
+      ]
+    }
+  }
+})
+```
 
 #### `onFunctionCall(options, callback)`
 Creates an HTTPS callable function.

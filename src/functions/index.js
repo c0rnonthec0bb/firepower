@@ -1,6 +1,7 @@
 
 import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg, filterObjectKeys } from '#util/index.js'
 import { getFunctionsBase } from '#functions/util.js'
+import { updateDoc } from '#firestore/index.js'
 import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
 import DataComparison from '#util/DataComparison.js'
 
@@ -10,10 +11,10 @@ import { logger } from 'firebase-functions'
 export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wildcardDocPath, callback) => {
   const options = { timeoutSeconds: 60, memory: '256MB', ...ephemeralOptions }
 
-  return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDocSnap, context) => {
+  return getFunctionsBase().runWith(options).firestore.document(wildcardDocPath).onCreate(async (newDoc, context) => {
     const { eventId, params } = context
 
-    const docChange = new DataComparison(undefined, newDocSnap)
+    const docChange = new DataComparison(undefined, newDoc)
       .transform(docSnap => docSnap ? new FirepowerDocSnap(docSnap) : undefined)
 
     const { id, ref, path } = docChange.newValue
@@ -22,7 +23,18 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 
     logger.info({ context, newData, eventId, params}, logPrefix)
 
-    return await callback({ context, params, docChange, id, ref, path })
+    const result = await callback({ context, params, docChange, id, ref, path })
+    if (result) {
+      const { updates, promiseFunctions } = result
+
+      if (updates) {
+        await updateDoc(newDoc, updates)
+      }
+
+      if (promiseFunctions) {
+        await Promise.all(promiseFunctions.map(f => f()))
+      }
+    }
   })
 })
 
@@ -44,7 +56,18 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
 
     logger.info({ context, docChange, eventId, params }, logPrefix)
 
-    return await callback({ context, params, docChange, id, ref, path })
+    const result = await callback({ context, params, docChange, id, ref, path })
+    if (result) {
+      const { updates, promiseFunctions } = result
+
+      if (updates) {
+        await updateDoc(newDoc, updates)
+      }
+
+      if (promiseFunctions) {
+        await Promise.all(promiseFunctions.map(f => f()))
+      }
+    }
   })
 })
 
