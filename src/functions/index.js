@@ -1,9 +1,8 @@
-
-import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg, filterObjectKeys } from '#util/index.js'
-import { getFunctionsBase } from '#functions/util.js'
-import { updateDoc } from '#firestore/index.js'
-import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
-import DataComparison from '#util/DataComparison.js'
+import { getFirebaseBase, isFirebaseAdminSDK, getLogger, optionalOptionsArg, filterObjectKeys } from '../util/index.js'
+import { getFunctionsBase } from './util.js'
+import { updateDoc } from '../firestore/index.js'
+import FirepowerDocSnap from '../firestore/FirepowerDocSnap.js'
+import DataComparison from '../util/DataComparison.js'
 
 import { logger } from 'firebase-functions'
 

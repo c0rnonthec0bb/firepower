@@ -1,5 +1,4 @@
-
-import FirepowerDocSnap from '#firestore/FirepowerDocSnap.js'
+import FirepowerDocSnap from './FirepowerDocSnap.js'
 
 export default class FirepowerColSnap {
   constructor(firebaseColSnap, options = {}) {

@@ -1,4 +1,4 @@
-import { getFirebaseBase } from '#util/index.js'
+import { getFirebaseBase } from '../util/index.js'
 
 export function getFirestoreBase() {
   return getFirebaseBase().firestore
