@@ -191,18 +191,49 @@ Creates a field delete FieldValue.
 ### Snapshot Wrappers
 
 #### FirepowerDocSnap
-Wrapper around Firestore document snapshots with the following getters:
+Wrapper around Firestore document snapshots with automatic data conversion. All document data is automatically decoded from Firestore format to native JavaScript types:
+
 - `exists`: Whether the document exists
 - `id`: The document ID
 - `metadata`: The document metadata
 - `ref`: The document reference
 - `path`: The full document path
-- `data`: The document data (automatically decoded from Firestore format)
+- `data`: The document data with automatic conversions:
+  - `Timestamp` → `Date` objects
+  - Nested arrays and objects are recursively converted
+  - `GeoPoint` and `FieldValue` objects are preserved as-is
+
+Example:
+```javascript
+const docSnap = await getDoc('users/123')
+
+// Timestamps are automatically converted to Date objects
+const createdAt = docSnap.data.createdAt // Date object
+const lastLogin = docSnap.data.lastLogin // Date object
+
+// Nested objects and arrays are also converted
+const preferences = docSnap.data.preferences // All nested Timestamps are Date objects
+const loginHistory = docSnap.data.loginHistory // Array of objects with Date objects
+```
 
 #### FirepowerColSnap
 Wrapper around Firestore collection snapshots:
 - `docs`: Array of `FirepowerDocSnap` instances for each document in the collection
+  - Each document's data is automatically converted as described above
 - `colSnap`: The underlying Firestore collection snapshot
+
+Example:
+```javascript
+const colSnap = await getCol('users')
+
+// All documents have their Timestamps converted to Dates
+colSnap.docs.forEach(doc => {
+  const createdAt = doc.data.createdAt // Date object
+  console.log(`User ${doc.id} created at:`, createdAt.toLocaleString())
+})
+```
+
+Note: When writing data back to Firestore (using `setDoc`, `updateDoc`, etc.), the library automatically converts your JavaScript `Date` objects back to Firestore `Timestamp` objects. You don't need to handle these conversions manually.
 
 ## Cloud Functions
 
@@ -264,4 +295,3 @@ Example usage with transform:
 const comparison = new DataComparison(oldData, newData)
   .transform(data => processData(data))
   // The comparison will now be performed on the transformed data
-```
