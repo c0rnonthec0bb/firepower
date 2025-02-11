@@ -28,7 +28,7 @@ export const onDocCreated = optionalOptionsArg(async (ephemeralOptions = {}, wil
       const { updates, promiseFunctions } = result
 
       if (updates) {
-        await updateDoc(newDoc, updates)
+        await updateDoc(path, updates)
       }
 
       if (promiseFunctions) {
@@ -61,7 +61,7 @@ export const onDocUpdated = optionalOptionsArg(async (ephemeralOptions = {}, wil
       const { updates, promiseFunctions } = result
 
       if (updates) {
-        await updateDoc(newDoc, updates)
+        await updateDoc(path, updates)
       }
 
       if (promiseFunctions) {
