@@ -4,7 +4,7 @@ import { updateDoc } from '../firestore/index.js'
 import FirepowerDocSnap from '../firestore/FirepowerDocSnap.js'
 import DataComparison from '../util/DataComparison.js'
 
-import { logger } from 'firebase-functions'
+// import { logger } from 'firebase-functions'
 
 
 export const onDocCreated = optionalOptionsArg((ephemeralOptions = {}, wildcardDocPath, callback) => {
@@ -20,7 +20,7 @@ export const onDocCreated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
 
     const logPrefix = `onDocCreated ${path}`
 
-    logger.info({ context, newData, eventId, params}, logPrefix)
+    getLogger().info({ context, newData, eventId, params}, logPrefix)
 
     const result = await callback({ context, params, docChange, id, ref, path })
     if (result) {
@@ -53,7 +53,7 @@ export const onDocUpdated = optionalOptionsArg((ephemeralOptions = {}, wildcardD
 
     const logPrefix = `onDocUpdated ${path}`
 
-    logger.info({ context, docChange, eventId, params }, logPrefix)
+    getLogger().info({ context, docChange, eventId, params }, logPrefix)
 
     const result = await callback({ context, params, docChange, id, ref, path })
     if (result) {
@@ -96,9 +96,9 @@ export const onFunctionCall = optionalOptionsArg((ephemeralOptions = {}, callbac
       ]),
     }
     const safeData = data || {}
-    logger.info({ context: filteredContext, data: safeData, options }, 'onFunctionCall start')
+    getLogger().info({ context: filteredContext, data: safeData, options }, 'onFunctionCall start')
     const result = await callback(safeData, context)
-    logger.info({ context: filteredContext, data: safeData, options, result }, 'onFunctionCall end')
+    getLogger().info({ context: filteredContext, data: safeData, options, result }, 'onFunctionCall end')
     return result
   })
 })
