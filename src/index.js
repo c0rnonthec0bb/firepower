@@ -8,3 +8,4 @@ export function initFirepower(firebaseBase) {
 }
 
 export * as firestore from './firestore/index.js'
+export * as functions from './functions/index.js'
