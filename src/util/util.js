@@ -137,6 +137,10 @@ export function isDeepStrictEqualUnordered(item1, item2, verbose, deepLocation =
       if (keyList1.some((key) => {
         return !isDeepStrictEqualUnordered(item1[key], item2[key], verbose, [...deepLocation, key])
       })) return false
+
+      if (String(item1) !== String(item2)) { // account for dates, regexp, etc
+        return false
+      }
       break
     }
     default: {
